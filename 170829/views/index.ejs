@@ -1,0 +1,15 @@
+<!DOCTYPE>
+<html>
+<head>
+  <link rel = "stylesheet" href = "/static/index.css">
+</head>
+<body>
+  
+  <% data.forEach(profile => { %>
+  <p><a href="/profile/<%= profile.slug %>"><%= profile.slug %></a></p>
+  <p>제 이름은 <%= profile.name %>입니다.</p>
+  <p>저는 <%= profile.description %></p>
+  <img src="<%= profile.avartar %>">
+  <% }) %>
+</body>
+</html>
