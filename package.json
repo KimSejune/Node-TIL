@@ -1,0 +1,26 @@
+{
+  "name": "hello-npm",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "randomstring": "^1.1.5",
+    "request": "^2.81.0"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KimSejune/Node-TIL.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KimSejune/Node-TIL/issues"
+  },
+  "homepage": "https://github.com/KimSejune/Node-TIL#readme",
+  "description": ""
+}
