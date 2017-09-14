@@ -72,7 +72,7 @@ app.use(middleware1, middleware2, middleware3, ...)
 
 - app.locals와 res.locals는 특별한 객체를 담고 있습니다. 템플릿에서는 res.render를 통해 명시적으로 주입받지 않아도 저 두 객체의 속성에 바로 접근할 수 있습니다.
 
-- 템플릿을 가리지 않고 사용되는 정보들, 예를 들어 '현재 로그인 중인 사용자 정보' 같은 것을 res.render에 매번 인자로 넘기는 것은 귀찮을 뿐더러 빠뜨리기도 쉽습니다. 그런 정보들을 템플릿에서 쉽게 사용하기 위해, app.locals나 res.locals에 우리가 원하는 이름으로 속성을 주입할 수 있습니다.
+- 템플릿을 가리지 않고 사용되는 정보들, 예를 들어 '현재 로그인 중인 사용자 정보' 같은 것을 res.render에 매번 인자로 넘기는 것은 귀찮을 뿐더러 빠뜨리기도 쉽습니다. 그런 정보들을 템플릿에서 쉽게 사용하기 위해, `app.locals`나 `res.locals`에 우리가 원하는 이름으로 속성을 주입할 수 있습니다.
 
 - app.locals는 앱 단위로 공통적으로 쓰이는 정보를 담는 목적으로 사용됩니다. res.locals는 각 요청마다 달라지는 정보를 담는 목적으로 사용됩니다.
 
@@ -227,43 +227,5 @@ app.use(function(err, req, res, next) {
   console.error(err.stack);
   res.status(500).send('Something broke!');
 });
-
-```
-
-
-
-
-
-```js
-
-```
-
-
-```js
-
-```
-
-
-```js
-
-```
-
-
-```js
-
-```
-
-
-```js
-
-```
-
-
-```js
-
-```
-
-
-```js
 
 ```
