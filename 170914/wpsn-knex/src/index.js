@@ -1,7 +1,9 @@
+// 통신을 주로하는 영역
 const express = require('express')
 const cookieSession = require('cookie-session')
 const bodyParser = require('body-parser')
 const bcrypt = require('bcrypt')
+const flash = require('connect-flash')
 
 const query = require('./query')
 // const knex = require('./knex')
@@ -13,6 +15,9 @@ app.use(cookieSession({
   name: 'session',
   keys: ['mysecret']
 }))
+
+app.use(flash())
+
 app.set('view engine', 'ejs')
 // git add
 function authMiddleware(req, res, next) {
@@ -36,19 +41,23 @@ app.get('/', authMiddleware, (req, res) => {
 })
 
 app.get('/login', (req, res) => {
-  res.render('login.ejs')
+  res.render('login.ejs', {errors: req.flash('error')})
 })
 
 app.post('/login', urlencodedMiddleware, (req, res) => {
   query.getUserById(req.body.username)
     .first()
     .then(matched => {
+      // compareSync(원래 pwd, bcrypt pwd)
       if (matched && bcrypt.compareSync(req.body.password, matched.password)){
         req.session.id = matched.id // 값은 cookie에 저장된다.
         res.redirect('/')
       }else {
-        res.status(400)
-        res.send('400 Bad request')
+        // session에 정보를 저장한다. 정보를 저장했으니 redirect를 해야한다.
+        req.flash('error', 'id or password is not mathced')
+        // res.status(400)
+        // res.send('400 Bad request')
+        res.redirect('/login')
       }
     })
 })
@@ -65,6 +74,10 @@ app.post('/url_entry', authMiddleware, urlencodedMiddleware, (req, res) => {
   query.createUrlEntry(long_url, req.user.id)
     .then( () => {
       res.redirect('/')
+    })
+    .catch(err => {
+      res.status(400)
+      res.send(err.message)
     })
 })
 

@@ -1,5 +1,8 @@
+// data를 주관하는 영역
+
 const knex = require('./knex')
 const randomstring = require('randomstring')
+const validator = require('validator')
 
 module.exports = {
   getUserById(id) {
@@ -21,6 +24,10 @@ module.exports = {
   // },
 
   createUrlEntry(long_url, user_id) {
+    const valid = validator.isURL(long_url)
+    if(!valid) {
+      return Promise.reject(new Error('url is uncorrect'))
+    }
     const id = randomstring.generate(8)
     return knex('url_entry')
       .insert({
@@ -28,6 +35,7 @@ module.exports = {
         long_url,
         user_id
       })
+
   },
 
   getUrlById(id) {
