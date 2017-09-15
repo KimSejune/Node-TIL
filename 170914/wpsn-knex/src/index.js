@@ -67,15 +67,47 @@ app.post('/url_entry', authMiddleware, urlencodedMiddleware, (req, res) => {
     })
 })
 
+// app.get('/:id', (req, res, next) => {
+//   query.getUrlById(req.params.id)
+//     .then(urlEntry => {
+//       if(urlEntry){
+//         query.saveClickCountById(urlEntry.id, urlEntry.click_count+1)
+//           .then(() => {
+//             res.redirect(urlEntry.long_url) // 301 moved~~ 영원히 이동한다 (브라우저에 저장) , 302 브라우저에 저장안하고 다시보낸다.
+//             // res.redirect(301, entry.long_url)를 해야하지만 사람들이 얼마나 클릭했는지 확인하기 위해서 301을 뺐다.
+//           })
+//       }else {
+//         next()
+//       }
+//     })
+// })
+
 app.get('/:id', (req, res, next) => {
   query.getUrlById(req.params.id)
     .then(urlEntry => {
       if(urlEntry){
-        res.redirect(urlEntry.long_url) // 301 moved~~ 영원히 이동한다 (브라우저에 저장) , 302 브라우저에 저장안하고 다시보낸다.
-        // res.redirect(301, entry.long_url)를 해야하지만 사람들이 얼마나 클릭했는지 확인하기 위해서 301을 뺐다.
+        query.incrementClickCountById(urlEntry.id) // Atomic Update를 적용한 상태이다.
+          .then(() => {
+            res.redirect(urlEntry.long_url) // 301 moved~~ 영원히 이동한다 (브라우저에 저장) , 302 브라우저에 저장안하고 다시보낸다.
+            // res.redirect(301, entry.long_url)를 해야하지만 사람들이 얼마나 클릭했는지 확인하기 위해서 301을 뺐다.
+          })
       }else {
         next()
       }
+    })
+})
+
+
+app.get('/register', (req, res) => {
+  res.render('register.ejs')
+})
+
+app.post('/register',urlencodedMiddleware, (req, res) => {
+  query.createUser(req.body.id, req.body.password)
+    .then(() => {
+      // 로그인
+      req.session.id = req.body.id
+      res.redirect('/')
     })
 })
 

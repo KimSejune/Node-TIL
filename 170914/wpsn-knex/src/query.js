@@ -34,6 +34,23 @@ module.exports = {
     return knex('url_entry')
       .where({id})
       .first()
+  },
+
+  // saveClickCountById(id, click_count) {
+  //   return knex('url_entry')
+  //     .where({id})
+  //     .update({click_count})
+  // }
+
+  incrementClickCountById(id) {
+    return knex('url_entry')
+      .where({id})
+      .increment('click_count', 1)
+  },
+
+  createUser(id, password) {
+    return knex('user')
+      .insert({id, password})
   }
 
 }
