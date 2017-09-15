@@ -1,10 +1,11 @@
 {
   "name": "wpsn-knex",
   "version": "1.0.0",
-  "description": "",
+  "description": "Node.js를 통해 MySQL을 이용하는 방법에는 아래와 같이 여러 가지가 있습니다.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "debug": "node --inspect src/index.js"
   },
   "keywords": [],
   "author": "",
