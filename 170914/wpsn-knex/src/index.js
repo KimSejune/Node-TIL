@@ -1,6 +1,7 @@
 const express = require('express')
 const cookieSession = require('cookie-session')
 const bodyParser = require('body-parser')
+const bcrypt = require('bcrypt')
 
 const query = require('./query')
 // const knex = require('./knex')
@@ -39,10 +40,10 @@ app.get('/login', (req, res) => {
 })
 
 app.post('/login', urlencodedMiddleware, (req, res) => {
-  query.getUser(req.body.username, req.body.password)
+  query.getUserById(req.body.username)
     .first()
     .then(matched => {
-      if (matched){
+      if (matched && bcrypt.compareSync(req.body.password, matched.password)){
         req.session.id = matched.id // 값은 cookie에 저장된다.
         res.redirect('/')
       }else {

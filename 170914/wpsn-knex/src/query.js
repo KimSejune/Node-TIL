@@ -14,11 +14,11 @@ module.exports = {
     .orderBy('created_at', 'desc')
   },
 
-  getUser(id, password){
-    return knex('user')
-    .where({id, password})
-    .first()
-  },
+  // getUser(id, password){
+  //   return knex('user')
+  //   .where({id, password})
+  //   .first()
+  // },
 
   createUrlEntry(long_url, user_id) {
     const id = randomstring.generate(8)
