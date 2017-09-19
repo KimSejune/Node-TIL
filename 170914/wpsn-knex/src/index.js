@@ -4,22 +4,81 @@ const cookieSession = require('cookie-session')
 const bodyParser = require('body-parser')
 const bcrypt = require('bcrypt')
 const flash = require('connect-flash')
+const csurf = require('csurf')
+const passport = require('passport')
+const LocalStrategy = require('passport-local').Strategy
+
 
 const query = require('./query')
 // const knex = require('./knex')
 
+// middleware는 순서에 영향을 받는다.
 const app = express()
 const urlencodedMiddleware = bodyParser.urlencoded({ extended: false })
+const csrfMiddleware = csurf()
 
 app.use(cookieSession({
   name: 'session',
   keys: ['mysecret']
 }))
-
+app.use(urlencodedMiddleware)
+app.use(csrfMiddleware)
 app.use(flash())
 
 app.set('view engine', 'ejs')
-// git add
+
+// 순서는 거의 마지막쯤에 된다.
+app.use(passport.initialize())
+// jwt를 사용한다면 session은 없어도 된다. 위에만 해주면 된다.
+app.use(passport.session())
+// session은 req.user에다가 넣어주는 역할을 한다.
+
+
+passport.serializeUser((user, done) => {
+  // user 객체로부터 세션에 저장할 수 있는 문자열을 만들어서 반환
+  done(null, user.id)
+})
+
+passport.deserializeUser((id, done) => {
+  // session에 저장되어 있는 id를 통해 user객체를 얻어온 후 변환
+  query.getUserById(id)
+    .then(user => {
+      if(user) {
+        done(null, user)
+      }else {
+        done(new Error('아이디가 일치하는 사용자가 없습니다.'))
+      }
+    })
+})
+
+passport.use(new LocalStrategy ((username, password, done) => {
+  // 최초의 로그인 할 때 사용 serial은 최초 이후로 로그인 할 때 사용
+  query.getUserById(username)
+    .then(matched => {
+      // compareSync(원래 pwd, bcrypt pwd)
+      if (matched && bcrypt.compareSync(password, matched.password)){
+        done(null, matched)
+      }else {
+        done(new Error('사용자 이름 혹은 비밀번호가 일치하지 않습니다.'))
+      }
+    })
+}))
+
+
+function authMiddleware(req, res, next) {
+// 로그인이 필요한 부분에 필요한 middleware이다.
+// passport에서는 req.user에 로그인 정보가 들어온다.
+  if(req.user) {
+    // 로그인이 된 상태이므로 그냥 통과시킨다.
+    next()
+  } else {
+    res.redirect('/login')
+  }
+
+}
+
+/*
+// passport사용 전 내부적으로만 인증할 때 사용
 function authMiddleware(req, res, next) {
   if(req.session.id){
     query.getUserById(req.session.id)
@@ -32,19 +91,35 @@ function authMiddleware(req, res, next) {
     res.redirect('/login')
   }
 }
+*/
+
 
 app.get('/', authMiddleware, (req, res) => {
   query.getUrlEntriesByUserId(req.user.id)
     .then(rows => {
-      res.render('index.ejs', {rows})
+      res.render('index.ejs', {rows, csrfToken: req.csrfToken()})
     })
 })
 
 app.get('/login', (req, res) => {
-  res.render('login.ejs', {errors: req.flash('error')})
+  res.render('login.ejs', {errors: req.flash('error'), csrfToken: req.csrfToken()})
 })
 
-app.post('/login', urlencodedMiddleware, (req, res) => {
+app.post('/login', passport.authenticate('local', {
+  successRedirect: '/',
+  failureRedirect: '/login',
+  failureFlash: true
+  // 여기서 true는 위에서 발생한 에러메시지를 출력한다 `사용자 이름 혹은 비밀번호가 일치하지 않습니다.`
+}))
+
+app.post('/logout', (req,res) => {
+  req.logout()
+  res.redirect('/login')
+})
+
+/*
+// passport사용 전 내부적으로만 인증할 때 사용
+app.post('/login', (req, res) => {
   query.getUserById(req.body.username)
     .first()
     .then(matched => {
@@ -62,13 +137,16 @@ app.post('/login', urlencodedMiddleware, (req, res) => {
     })
 })
 
+
 app.post('/logout', (req,res) => {
   req.session = null;
   res.redirect('/login')
 })
+*/
+
 
 // authMiddleware를 사용하지 않는다면 req.user에 아무런 정보가 들어가지 않는다.
-app.post('/url_entry', authMiddleware, urlencodedMiddleware, (req, res) => {
+app.post('/url_entry', authMiddleware, (req, res) => {
   const long_url = req.body.long_url
   // 데이터 저장
   query.createUrlEntry(long_url, req.user.id)
@@ -113,10 +191,10 @@ app.get('/:id', (req, res, next) => {
 
 
 app.get('/register', (req, res) => {
-  res.render('register.ejs')
+  res.render('register.ejs', {csrfToken: req.csrfToken()})
 })
 
-app.post('/register',urlencodedMiddleware, (req, res) => {
+app.post('/register', (req, res) => {
   query.createUser(req.body.id, req.body.password)
     .then(() => {
       // 로그인
