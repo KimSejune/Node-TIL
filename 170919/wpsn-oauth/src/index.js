@@ -11,6 +11,10 @@ const passport = require('passport')
 const GitHubStrategy = require('passport-github').Strategy
 // google 연결
 const GoogleStrategy = require('passport-google-oauth20').Strategy
+// facebook 연결
+const FacebookStrategy = require('passport-facebook').Strategy
+// naver 연결
+const NaverStrategy = require('passport-naver').Strategy
 
 const util = require('./util')
 const query = require('./query')
@@ -93,6 +97,46 @@ passport.use(new GoogleStrategy({
     })
 }))
 
+passport.use(new FacebookStrategy({
+  clientID: process.env.FACEBOOK_CLIENT_ID,
+  clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+  callbackURL: process.env.FACEBOOK_CALLBACK_URL,
+  profileFields: ['id', 'displayName', 'photos', 'email']
+},(accessToken, refreshToken, profile, done) => {
+  const avatar_url = profile.photos[0] ? profile.photos[0].value : null
+  query.firstOrCreateUserByProvider( // facebook 로그인 하는 부분 access token으로 profile까지 받아온다.
+      // facebook 같은 것을 가진놈을 가져오고 없으면 만들어서 가져온다.
+      'facebook',
+      profile.id,
+      accessToken,
+      avatar_url
+    ).then(user => {
+      done(null, user)
+    }).catch(err => {
+      done(err)
+    })
+}))
+
+passport.use(new NaverStrategy({
+  clientID: process.env.NAVER_CLIENT_ID,
+  clientSecret: process.env.NAVER_CLIENT_SECRET,
+  callbackURL: process.env.NAVER_CALLBACK_URL,
+  svcType: 0
+},(accessToken, refreshToken, profile, done) => {
+  const avatar_url = profile._json ? profile._json.profile_image : null
+  query.firstOrCreateUserByProvider( // naver 로그인 하는 부분 access token으로 profile까지 받아온다.
+      // naver 같은 것을 가진놈을 가져오고 없으면 만들어서 가져온다.
+      'naver',
+      profile.id,
+      accessToken,
+      avatar_url
+    ).then(user => {
+      done(null, user)
+    }).catch(err => {
+      done(err)
+    })
+}))
+
 app.get('/', mw.loginRequired, (req, res) => {
   res.render('index.pug', req.user)
 })
@@ -121,6 +165,30 @@ app.get('/auth/google',passport.authenticate('google', { scope: ['profile'] }))
 
 // google에서 우리서버로 redirect를 해준다.
 app.get('/auth/google/callback', passport.authenticate('google', {
+  successRedirect: '/',
+  failureRedirect: '/login',
+  failureFlash: true
+}))
+
+// 우리서버가 facebook으로 redirect하고 허용을 누르면 아래로
+app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['public_profile'] }))
+
+
+// google에서 우리서버로 redirect를 해준다.
+app.get('/auth/facebook/callback', passport.authenticate('facebook', {
+  successRedirect: '/',
+  failureRedirect: '/login',
+  failureFlash: true
+}))
+
+
+// 우리서버가 naver으로 redirect하고 허용을 누르면 아래로
+app.get('/auth/naver', passport.authenticate('naver', null), function(req, res) {
+    console.log('/auth/naver failed, stopped')
+})
+
+// naver에서 우리서버로 redirect를 해준다.
+app.get('/auth/naver/callback', passport.authenticate('naver', {
   successRedirect: '/',
   failureRedirect: '/login',
   failureFlash: true
