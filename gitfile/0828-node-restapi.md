@@ -441,7 +441,7 @@ tenSec('hello promise')
   - `맨 위의 then에서 에러가나면 바로 catch로 넘어간다.`
 
 - promise.all([...]) 배열안의 넘기는 값들이 모두 성공해야지 성공한다.
-- promise.rase([...]) 배열안의 값중에서 먼저 성공한것을 나타낸다.
+- promise.race([...]) 배열안의 값중에서 먼저 성공한것을 나타낸다.
 
 ## readFile - promise
 
