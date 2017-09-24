@@ -15,6 +15,8 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy
 const FacebookStrategy = require('passport-facebook').Strategy
 // naver 연결
 const NaverStrategy = require('passport-naver').Strategy
+// root 연결
+const LocalStratrgy = require('passport-local').Strategy
 
 const util = require('./util')
 const query = require('./query')
@@ -137,6 +139,20 @@ passport.use(new NaverStrategy({
     })
 }))
 
+passport.use(new LocalStratrgy( (username, password, done) => {
+  query.compareUser(username, password)
+    .then(user => {
+      done(null, user)
+    })
+    .catch(err => {
+      if(err) {
+        done(null, err)
+      }else {
+        done(err)
+      }
+    })
+}))
+
 app.get('/', mw.loginRequired, (req, res) => {
   res.render('index.pug', req.user)
 })
@@ -148,6 +164,41 @@ app.get('/login', (req, res) => {
 app.post('/logout', (req, res) => {
   req.logout()
   res.redirect('/login')
+})
+
+// locallogin에서 req.user를 넘겼는데 왜 정보가 안들어갈까.
+app.get('/locallogin', mw.localloginRequired, (req, res) => {
+  res.render('localindex.pug', req.user)
+})
+
+app.post('/locallogin', passport.authenticate(('local'), {
+  successRedirect:'/locallogin',
+  failureRedirect: '/login',
+  failureFlash: '아이디 혹은 패스워드가 잘못되었습니다.asdss'
+}))
+
+app.post('/locallogout', (req, res) => {
+  req.logout()
+  res.redirect('/login')
+})
+
+
+app.get('/register', (req, res) => {
+  res.render('register.pug')
+})
+
+app.post('/register', (req, res, next) => {
+  query.createUser(req.body.username, req.body.password)
+    .then(user => {
+      req.login(user, err => {
+        if (err) {
+          next(err)
+        } else {
+          res.redirect('/locallogin')
+        }
+      })
+    })
+    .catch(util.flashError(req, res))
 })
 
 // 우리서버가 github으로 redirect하고 허용을 누르면 아래로
@@ -193,6 +244,8 @@ app.get('/auth/naver/callback', passport.authenticate('naver', {
   failureRedirect: '/login',
   failureFlash: true
 }))
+
+
 
 
 app.listen(PORT, () => {

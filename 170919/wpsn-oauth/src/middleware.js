@@ -8,6 +8,15 @@ function loginRequired(req, res, next) {
   }
 }
 
+function localloginRequired(req, res, next) {
+  if (req.user) {
+    next()
+  } else {
+    res.redirect('/locallogin')
+  }
+}
+
+
 function insertReq(req, res, next) {
   // for use of flash message in templates
   res.locals.req = req
@@ -21,5 +30,6 @@ function insertToken(req, res, next) {
 module.exports = {
   loginRequired,
   insertReq,
-  insertToken
+  insertToken,
+  localloginRequired
 }

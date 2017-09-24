@@ -36,4 +36,36 @@ module.exports = {
       .where({id})
       .first()
   },
+  createUser(username, password) {
+    return bcrypt.hash(password, 10)
+      .then((hashed_password) => {
+        return knex('localuser')
+        .insert({
+          username,
+          hashed_password,
+          user_id:'10'
+        })
+      })
+  },
+
+  compareUser(username, password) {
+    return knex('localuser')
+      .where({username})
+      .first()
+      .then(user => {
+        if(user) {
+          return Promise.all([user, bcrypt.compare(password, user.hashed_password)])
+        } else {
+          throw new Error('login Error!!!')
+        }
+      })
+      .then(([user, isMatched]) => {
+        if(!isMathced) {
+          throw new Error('isNot Matched Error')
+        }else {
+          return user
+        }
+      })
+  }
+
 }

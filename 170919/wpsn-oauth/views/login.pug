@@ -6,3 +6,14 @@ block body
   p: a(href='/auth/google') Google으로 로그인
   p: a(href='/auth/facebook') Facebook으로 로그인
   p: a(href='/auth/naver') naver으로 로그인
+
+  form(action='/locallogin', method='post')
+    input(type='hidden', name='_csrf', value=csrfToken)
+    label
+      span username
+      input(type='text', name='username')
+      span password
+      input(type='text', name='password')
+    button(type='submit') 로그인
+
+  p: a(href='/register') 회원가입
