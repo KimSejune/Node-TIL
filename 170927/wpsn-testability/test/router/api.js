@@ -8,9 +8,13 @@ const createApp = require('../../src/app')
 
 describe('api', function() {
   beforeEach(function() {
+    // postMessage는 slack에다가 보낼 메세지 함수이다.
     const postMessage = sinon.spy()
+    // app객체만 실행하고 생성하지는 않는다. app.js참고
     this.app = createApp({postMessage})
+    // src/api.js참고
     this.postMessage = postMessage
+    // test용 db를 비운다.
     return knexCleaner.clean(knex, {'ignoreTables': ['knex_migrations', 'knex_migrations_lock']})
   })
 
@@ -55,6 +59,7 @@ describe('api', function() {
         })
     })
 
+    // skip상태이다. = pending 나중에 할때 skip사용
     it.skip('이미 존재하는 이메일에 대해서 에러', function() {
       return request(this.app)
         .post('/api/subscription')

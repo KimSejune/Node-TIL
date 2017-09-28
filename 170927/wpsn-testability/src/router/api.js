@@ -1,15 +1,17 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const validator = require('validator')
+const bugsnag = require('bugsnag')
 
 const query = require('../query')
 const error = require('../error')
 
+// 의존성 주입 {postMessage}를 한다.
 module.exports = ({postMessage}) => {
   const router = express.Router()
 
   router.use(bodyParser.json())
-
+  // api/subscription이다.
   router.post('/subscription', (req, res, next) => {
     const email = req.body.email
     if (!email) {
@@ -32,6 +34,10 @@ module.exports = ({postMessage}) => {
   router.use((req, res, next) => {
     next(new error.NotFoundError('경로를 찾을 수 없습니다.'))
   })
+
+  router.use(bugsnag.errorHandler)
+
+
   router.use((err, req, res, next) => {
     if (
       err instanceof error.InsufficientDataError
@@ -53,6 +59,7 @@ module.exports = ({postMessage}) => {
       })
     }
   })
+  router.use(bugsnag.errorHandler)
 
   return router
 }

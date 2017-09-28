@@ -1,0 +1,7 @@
+apps:
+  - script : index.js
+    name : 'testability'
+    instances : 4
+    exec_mode : cluster
+    emv_production :
+      NODE_ENV: production
